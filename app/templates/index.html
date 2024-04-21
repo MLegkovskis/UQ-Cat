@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenTURNS Analysis</title>
+    <style>
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        function populateFields() {
+            var exampleFunction = document.getElementById('example_function').value;
+            var functionField = document.getElementById('function');
+            var numVarsField = document.getElementById('num_vars');
+            var namesField = document.getElementById('names');
+            var boundsField = document.getElementById('bounds');
+            var distributionsField = document.getElementById('distributions');
+
+            if (exampleFunction === 'ishigami') {
+                functionField.value = 'np.sin(x1) + 7 * np.sin(x2)**2 + 0.1 * x3**4 * np.sin(x1)';
+                numVarsField.value = '3';
+                namesField.value = 'x1, x2, x3';
+                boundsField.value = '-np.pi, np.pi\n-np.pi, np.pi\n-np.pi, np.pi';
+                distributionsField.value = 'uniform, uniform, uniform';
+            } else if (exampleFunction === 'dislocation') {
+                functionField.value = 'abs(((M * gamma) / (2.0 * 2.54e-9)) * (np.sqrt((8.0 * gamma * phi * Rs) / (np.pi * G * pow(2.54e-9, 2))) - phi) / 1e6)';
+                numVarsField.value = '5';
+                namesField.value = 'gamma, phi, Rs, G, M';
+                boundsField.value = '0.15, 0.25\n0.30, 0.45\n1e-8, 3e-8\n6e10, 8e10\n2.9, 3.2';
+                distributionsField.value = 'uniform, uniform, uniform, uniform, normal';
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>OpenTURNS Analysis</h1>
+    <form method="post" enctype="multipart/form-data">
+        <label for="example_function">Select an example function:</label>
+        <select name="example_function" id="example_function" onchange="populateFields()">
+            <option value="">Select an example function</option>
+            <option value="ishigami">Ishigami function</option>
+            <option value="dislocation">Dislocation Model from Brown and Ham</option>
+        </select>
+
+        <label for="function">Function of Interest:</label>
+        <textarea name="function" id="function" rows="3" required>{{ function_str|default('') }}</textarea>
+
+        <label for="num_vars">Number of Variables:</label>
+        <input type="text" name="num_vars" id="num_vars" required value="{{ num_vars|default('') }}">
+
+        <label for="names">Variable Names (comma-separated):</label>
+        <input type="text" name="names" id="names" required value="{{ names|default('') }}">
+
+        <label for="bounds">Variable Bounds (comma-separated, one per line):</label>
+        <textarea name="bounds" id="bounds" rows="5" required>{{ bounds|default('') }}</textarea>
+
+        <label for="distributions">Variable Distributions (comma-separated):</label>
+        <input type="text" name="distributions" id="distributions" required value="{{ distributions|default('') }}">
+
+        <label for="sensitivity_method">Sensitivity Analysis Method:</label>
+        <select name="sensitivity_method" id="sensitivity_method">
+            <option value="SaltelliSensitivityAlgorithm" {% if sensitivity_method == 'SaltelliSensitivityAlgorithm' %}selected{% endif %}>Saltelli Sensitivity</option>
+            <option value="MartinezSensitivityAlgorithm" {% if sensitivity_method == 'MartinezSensitivityAlgorithm' %}selected{% endif %}>Martinez Sensitivity</option>
+            <option value="JansenSensitivityAlgorithm" {% if sensitivity_method == 'JansenSensitivityAlgorithm' %}selected{% endif %}>Jansen Sensitivity</option>
+            <option value="MauntzKucherenkoSensitivityAlgorithm" {% if sensitivity_method == 'MauntzKucherenkoSensitivityAlgorithm' %}selected{% endif %}>Mauntz Kucherenko Sensitivity</option>
+        </select>
+        
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+
+    {% if plot_url %}
+        <h2>Generated Plot:</h2>
+        <img src="data:image/png;base64,{{ plot_url }}" alt="Generated Plot">
+    {% endif %}
+</body>
+</html>
